@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import Web3 from 'web3';
 
 function App() {
+  const [error, setError] = useState('');
   const [wallet, setWallet] = useState({
     web3: '',
     account: '',
@@ -20,13 +21,14 @@ function App() {
         setWallet({ web3: web, account: accounts[0] });
       } catch (e) {
         console.log('coonect wallet error: ', e);
-        // setError(e.message);
+        setError(e.message);
       }
     } else {
       console.log('Please install metamask');
+      setError('Please install metamask');
     }
   };
-  
+
   const { web3, account } = wallet;
   useEffect(() => {
     if (!account) {
@@ -85,6 +87,7 @@ function App() {
     <BrowserRouter>
       <Navbar account={account} connectWallet={conenctWalletHandler} />
       <main>
+        {error}
         <Routes>
           <Route path='/' element={<Home account={account} web3={web3} />} />
         </Routes>

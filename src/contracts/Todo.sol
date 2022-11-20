@@ -23,7 +23,16 @@ contract Todo {
         list[msg.sender][_id].isDone = _status;
     }
 
-    function getTodos() public returns (Task[] memory) {
+    function getTodos() public view returns (Task[] memory) {
         return list[msg.sender];
+    }
+
+    function deleteTodo(uint _id) public {
+        uint n = list[msg.sender].length;
+        require(_id < n, "Please enter a valid id");
+        for (uint i = _id; i < n - 1; i++) {
+            list[msg.sender][i] = list[msg.sender][i + 1];
+        }
+        list[msg.sender].pop();
     }
 }
