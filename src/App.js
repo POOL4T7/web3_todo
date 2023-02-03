@@ -31,11 +31,9 @@ function App() {
 
   const { web3, account } = wallet;
   useEffect(() => {
-    if (!account) {
-      conenctWalletHandler();
-    }
+    conenctWalletHandler();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [account]);
+  }, []);
 
   // useEffect(() => {
   //   loadWeb3();

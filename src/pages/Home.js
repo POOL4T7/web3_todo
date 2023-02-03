@@ -8,21 +8,23 @@ const Home = ({ web3, account }) => {
   const [lodaing, setLodaing] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+
   const getTodoABI = async () => {
     try {
       /**
        * networkId and contract address after deploy
        */
       // const networkId = await web3.eth.net.getId();
-      const networkData = TodoContract.networks['5777'];
+      const networkData =
+        TodoContract.networks[`${process.env.REACT_APP_NETWORKID}`];
       if (networkData) {
         const Dtodo = new web3.eth.Contract(
           TodoContract.abi,
-          '0x29C80DD6362feEFAf98cE35bAadB4540Be0f1CD4'
+          process.env.REACT_APP_CONTRACT_ADDRESS
         );
         setTodo(Dtodo);
       } else {
-        window.alert('Decentragram contract not deployed to detected network.');
+        setError('Something went wrong with network ID');
       }
     } catch (e) {
       console.log('somethig went wrong', e.message);
@@ -40,9 +42,11 @@ const Home = ({ web3, account }) => {
   const addTask = async (e) => {
     e.preventDefault();
     try {
-      await Todo.methods.addTodo(message).send({ from: account });
+      const data = await Todo.methods.addTodo(message).send({ from: account });
+      console.log(data);
       const newTask = { message: message, isDone: false };
       setTodos((todos) => [...todos, newTask]);
+      setMessage('');
     } catch (e) {
       console.log('error while adding new task', e.message);
       setError(e.message);
@@ -62,23 +66,29 @@ const Home = ({ web3, account }) => {
   const statusUpdate = async (e) => {
     e.preventDefault();
     try {
-      const value = !e.target.value;
+      const value = e.target.checked;
       await Todo.methods
         .updateStatus(e.target.id, value)
         .send({ from: account });
-      e.target.value = value;
+      // setTodos(
+      //   await todos.map((todo, idx) => {
+      //     if (idx === Number(e.target.id)) {
+      //       return { id: todo.id, isDone: value, message: todo.message };
+      //     }
+      //     return todo;
+      //   })
+      // );
     } catch (e) {
       console.log('update status error: ', e.message);
       setError(e.message);
     }
   };
 
-  // const updateTask = () => {};
   const removeTask = async (e) => {
     e.preventDefault();
-    const id = 0;
+    const id = Number(e.target.id.substr(1));
     try {
-      await Todo.methods.deleteTodo(0).send({ from: account });
+      await Todo.methods.deleteTodo(id).send({ from: account });
       setTodos(todos.filter((item, idx) => idx !== id));
     } catch (e) {
       console.log('removing task error: ', e.message);
@@ -96,8 +106,8 @@ const Home = ({ web3, account }) => {
   }, [Todo, todos]);
 
   return (
-    <div className='container p-5' style={{ maxWidth: '500px' }}>
-      <h4>{error}</h4>
+    <div className='container p-5' style={{ maxWidth: '530px' }}>
+      <h4 className='text-danger'>{error}</h4>
       <h2 className='text-center p-5'>Todo App</h2>
       <p className='tasks-desc'>
         Add tasks to your list by typing to the right and pressing enter.You may
@@ -113,41 +123,35 @@ const Home = ({ web3, account }) => {
           onChange={(e) => setMessage(e.target.value)}
         ></input>
       </div>
-      <button className='btn btn-outline-success' onClick={addTask}>
+      <button className='btn btn-outline-success mt-1' onClick={addTask}>
         Add
       </button>
-      <div className='list-container p-2'>
-        <ul className='list-group list-group-flush' id='list'>
+      <div className='list-container pt-2'>
+        <ul className='list-group' id='list'>
           {lodaing || todos == null ? (
             <Spinner />
           ) : (
             todos.map((todo, idx) => (
-              <div key={idx} className='d-flex justify-content-between m-1'>
-                <li className='list-group-item'>
-                  <span className='strike-list'>{todo.message} </span>
-                  <input
-                    onChange={statusUpdate}
-                    className='tick-mark checkbox-field'
-                    type='checkbox'
-                    id={idx}
-                    checked={todo.isDone}
-                    value={todo.isDone}
-                  ></input>
-                  {/* <button
-                    onClick={updateTask}
-                    className='btn btn-outline-success'
-                  >
-                    <i className='bi bi-pen edit'></i>
-                  </button> */}
-                  <button
-                    type='button'
-                    className='btn btn-outline-danger'
+              <li
+                key={idx}
+                className='list-group-item d-flex justify-content-between mt-1'
+              >
+                <span className='strike-list'>{todo.message} </span>
+                <input
+                  onChange={statusUpdate}
+                  className='form-check-input'
+                  type='checkbox'
+                  checked={todo.isDone}
+                  id={idx}
+                ></input>
+                <button type='button' className='btn btn-outline-danger'>
+                  <i
+                    className='bi bi-trash-fill del'
+                    id={`#${idx}`}
                     onClick={removeTask}
-                  >
-                    <i className='bi bi-trash-fill del'></i>
-                  </button>
-                </li>
-              </div>
+                  ></i>
+                </button>
+              </li>
             ))
           )}
         </ul>

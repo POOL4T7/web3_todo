@@ -11,8 +11,11 @@ contract Todo {
     }
     mapping(address => Task[]) list;
 
+    event todoAdded(string str);
+
     function addTodo(string memory _message) public {
         list[msg.sender].push(Task(taskCount++, _message, false));
+        emit todoAdded("Todo added");
     }
 
     function updateTodo(uint _id, string memory _message) public {
